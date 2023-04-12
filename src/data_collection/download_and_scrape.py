@@ -32,16 +32,7 @@ def get_video_metadata(api_key, video_id):
 
     return {
         'id': video_id,
-        'title': snippet['title'],
-        'published_at': snippet['publishedAt'],
-        'channel_id': snippet['channelId'],
-        'channel_title': snippet['channelTitle'],
-        'category_id': snippet['categoryId'],
-        'view_count': statistics['viewCount'],
-        'like_count': statistics['likeCount'],
-        'dislike_count': statistics['dislikeCount'],
-        'favorite_count': statistics['favoriteCount'],
-        'comment_count': statistics['commentCount'],
+        **statistics
     }
 
 def save_metadata_to_csv(metadata, output_file):
