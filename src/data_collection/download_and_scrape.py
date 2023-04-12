@@ -16,6 +16,7 @@ def download_video(video_url, output_directory):
 
     with yt_dlp.YoutubeDL(ydl_opts) as ydl:
         ydl.download([video_url])
+        return True
 
 def get_video_metadata(api_key, video_id):
     youtube = googleapiclient.discovery.build("youtube", "v3", developerKey=api_key)
@@ -66,8 +67,8 @@ if __name__ == "__main__":
     api_key = "AIzaSyC0VcDyYaM4zy_feKOcVhqiSGzv5ZjWdjA"
     search_query = "short format videos"
     max_results = 50
-    output_directory = "../../data/raw_videos/"
-    output_file = "../../data/video_metadata.csv"
+    output_directory = f"{os.getcwd()}/data/raw_videos/"
+    output_file = f"{os.getcwd()}/data/video_metadata.csv"
 
     video_ids = get_video_ids_by_search_query(api_key, search_query, max_results)
 
@@ -77,6 +78,7 @@ if __name__ == "__main__":
             download_video(video_url, output_directory)
             metadata = get_video_metadata(api_key, video_id)
             save_metadata_to_csv(metadata, output_file)
-            print(f"Processed video {video_id}")
+            print(f"Processed video {video_id} \n {metadata} \n")
+            
         except Exception as e:
             print(f"Error processing video {video_id}: {e}")
