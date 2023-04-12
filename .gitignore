@@ -1,0 +1,33 @@
+# .gitignore
+
+# Directories
+__pycache__/
+*.ipynb_checkpoints/
+*.pyc
+*.pyo
+*.pyd
+
+# Data
+data/raw_videos/
+data/preprocessed_features.npy
+
+# Results
+results/
+
+# Virtual environments
+venv/
+*.virtualenv/
+
+# Logs and databases
+*.log
+*.sqlite
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
