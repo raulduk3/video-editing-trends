@@ -14,7 +14,7 @@ To install the necessary Python dependencies for this project, please follow the
 pip install -r requirements.txt
 ```
 
-The required packages include PySceneDetect, and other necessary dependencies.
+The required packages include PySceneDetect and other necessary dependencies.
 
 ## Usage
 
