@@ -12,7 +12,7 @@ data/raw_videos/
 data/preprocessed_features.npy
 
 # Results
-results/
+# results/
 
 # Virtual environments
 venv/
