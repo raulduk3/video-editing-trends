@@ -18,7 +18,25 @@ The required packages include PySceneDetect and other necessary dependencies.
 
 ## Usage
 
-#TODO: ## WRITE USAGE SECTION
+### Scraping Data
+To scrape data from YouTube using search queries, make sure your Python environment is activated and all the dependencies are installed, then run the following command:
+```
+forever start --spinSleepTime -c python3 src/data_collection/download_and_scrape.py
+```
+This will start the data collection process and scrape metadata for videos from YouTube using search queries. Note that this may take some time depending on the number of videos being collected and the speed of your internet connection.
+
+### Feature Extraction
+[TODO: add feature extraction instructions]
+
+### Feature Preprocessing
+[TODO: add feature preprocessing instructions]
+
+### Clustering
+[TODO: add clustering instructions]
+
+### Visualization
+[TODO: add visualization instructions]
+
 
 ## Project Structure
 ```

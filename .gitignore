@@ -6,10 +6,10 @@ __pycache__/
 *.pyc
 *.pyo
 *.pyd
+*.npy
 
 # Data
 data/raw_videos/
-data/preprocessed_features.npy
 
 # Results
 # results/
