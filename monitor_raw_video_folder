@@ -1,0 +1,9 @@
+#!/bin/zsh
+
+folder_to_monitor="data/raw_videos/"
+
+while inotifywait -qqre modify,create,delete,move "${folder_to_monitor}"; do
+  clear
+  tree "${folder_to_monitor}"
+done
+

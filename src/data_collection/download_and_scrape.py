@@ -187,8 +187,8 @@ if __name__ == "__main__":
 
     for query in search_queries:
         video_ids = get_video_ids_by_search_query(api_key, query, max_results)
-        print(f"Downloading: {query}")
         print("\033[2J")
+        print(f"Downloading: {query}")
 
         for video_id in tqdm(video_ids, unit="video"):
             video_url = f"https://www.youtube.com/watch?v={video_id}"
