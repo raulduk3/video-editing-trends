@@ -20,6 +20,47 @@ The required packages include PySceneDetect and other necessary dependencies.
 
 #TODO: ## WRITE USAGE SECTION
 
+## Project Structure
+```
+project_root/
+│
+├── data/
+│   ├── raw_videos/
+│   │   ├── video1.mp4
+│   │   ├── video2.mp4
+│   │   └── ...
+│   ├── video_metadata.csv
+│   └── preprocessed_features.npy
+│
+├── src/
+│   ├── data_collection/
+│   │   ├── download_videos.py
+│   │   └── scrape_metadata.py
+│   ├── feature_extraction/
+│   │   ├── shot_boundaries.py
+│   │   └── metadata_features.py
+│   ├── feature_preprocessing/
+│   │   ├── normalize_features.py
+│   │   └── encode_features.py
+│   ├── clustering/
+│   │   └── unsupervised_dnn.py
+│   ├── visualization/
+│   │   ├── tsne_visualization.py
+│   │   └── pca_visualization.py
+│   └── utils.py
+│
+├── notebooks/
+│   └── exploratory_analysis.ipynb
+│
+├── results/
+│   ├── visualizations/
+│   │   ├── tsne_plot.png
+│   │   └── pca_plot.png
+│   └── clustering_results.csv
+│
+└── README.md
+```
+
 ## Dataset
 
 The provided dataset of short-format videos was collected from various online platforms and used for analysis in this project. The dataset is included in this repository.
