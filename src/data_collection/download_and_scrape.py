@@ -65,8 +65,8 @@ def get_video_ids_by_search_query(api_key, query, max_results=50):
 
 if __name__ == "__main__":
     api_key = "AIzaSyC0VcDyYaM4zy_feKOcVhqiSGzv5ZjWdjA"
-    search_query = "short format videos"
-    max_results = 50
+    search_query = "short videos OR reels"
+    max_results = 500
     output_directory = f"{os.getcwd()}/data/raw_videos/"
     output_file = f"{os.getcwd()}/data/video_metadata.csv"
 
