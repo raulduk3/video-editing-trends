@@ -45,7 +45,7 @@ This will start the data collection process and scrape metadata for videos from 
 
 ## Project Structure
 ```
-project_root/
+pySceneDetect-clustering-analysis/
 │
 ├── data/
 │   ├── raw_videos/
