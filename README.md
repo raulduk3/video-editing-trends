@@ -24,7 +24,6 @@ The required packages include PySceneDetect and other necessary dependencies.
 
 ### Scraping Data
 To scrape data from YouTube using search queries, make sure your Python environment is activated and all the dependencies are installed, then run the following command:
-
 ```
  python src/data_collection/download_and_scrape.py 
 ```
