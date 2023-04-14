@@ -1,4 +1,4 @@
-# pySceneDetect-clustering-analysis
+# Exploring Short-Format Video Editing Trends using Unsupervised Deep Learning: An AI-Powered Analysis of Creative Strategies and Technique
 
 This repository contains the code and data for a project analyzing trends in short-format video editing using PySceneDetect and unsupervised deep learning techniques. The project was conducted by Richard Alvarez, a student at Kenyon College IPHS Department, as part of their coursework.
 
