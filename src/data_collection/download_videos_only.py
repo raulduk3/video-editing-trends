@@ -6,7 +6,6 @@ import csv
 import yt_dlp
 import re
 
-
 def download_video(video_url, output_directory):
     ydl_opts = {
         'format': 'best',
@@ -66,8 +65,6 @@ def remove_duplicates_from_csv(input_csv):
 
     print(f"Original video count: {len(list(csv.DictReader(open(input_csv, 'r'))))}")
     print(f"Unique video count: {len(unique_video_ids)}")
-
-
 
 if __name__ == "__main__":
     input_file = f"{os.getcwd()}/data/video_metadata.csv"
