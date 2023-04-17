@@ -21,13 +21,33 @@ pip install -r requirements.txt
 The required packages include PySceneDetect and other necessary dependencies.
 
 ## Usage
-
 ### Scraping Data
-To scrape data from YouTube using search queries, make sure your Python environment is activated and all the dependencies are installed, then run the following command:
+To scrape data from YouTube using search queries, you can use the following scripts:
+
+download_and_scrape.py
+This script downloads and scrapes videos from YouTube using search queries. It saves the video files to the data/raw_videos directory and saves the video metadata to the data/video_metadata.csv file. To run the script, use the following command:
+
 ```
- python src/data_collection/download_and_scrape.py 
+python src/data_collection/download_and_scrape.py
 ```
-This will start the data collection process and scrape metadata for videos from YouTube using search queries. Note that this may take some time depending on the number of videos being collected and the speed of your internet connection.
+download_videos_only.py
+This script downloads videos from YouTube using search queries. It saves the video files to the data/raw_videos directory. To run the script, use the following command:
+
+```
+python src/data_collection/download_videos_only.py
+```
+scrape_metadata_only.py
+This script scrapes metadata for videos from YouTube using search queries. It saves the video metadata to the data/video_metadata.csv file. To run the script, use the following command:
+
+```
+python src/data_collection/scrape_metadata_only.py
+```
+verify_video_files.py
+This script verifies that the video files in the data/raw_videos directory match the video metadata in the data/video_metadata.csv file. To run the script, use the following command:
+
+```
+python src/data_collection/verify_video_files.py
+```
 
 ### Feature Extraction
 [TODO: add feature extraction instructions]

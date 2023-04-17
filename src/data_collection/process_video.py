@@ -1,26 +1,21 @@
 # src/data_processing/process_videos.py
 
 import os
+import sys
+from tqdm import tqdm
 import pandas as pd
-from scenedetect import open_video, ContentDetector, SceneManager
+from scenedetect import open_video, AdaptiveDetector, SceneManager
 
 def process_video(file_path):
-    # Create a VideoManager and SceneManager
     video = open_video(file_path)
     scene_manager = SceneManager()
-
-    # Add a ContentDetector to the SceneManager
-    scene_manager.add_detector(ContentDetector())
+    scene_manager.add_detector(AdaptiveDetector())
 
     scene_manager.detect_scenes(video)
 
-    # Get scene boundaries
     scene_boundaries = scene_manager.get_scene_list()
+    num_shots = 1 if len(scene_boundaries) == 0 else len(scene_boundaries)
 
-    # Calculate the number of shots
-    num_shots = 1 if len(scene_boundaries) == 0 else len(scene_boundaries) 
-
-    # Calculate shot durations
     shot_durations = [
         (scene[1] - scene[0]).get_seconds()
         for scene in scene_boundaries
@@ -32,31 +27,33 @@ def process_video(file_path):
         'shot_durations': shot_durations,
     }
 
-
 if __name__ == "__main__":
-    csv_file = f"{os.getcwd()}/data/video_metadata.csv"
+    input_csv = f"{os.getcwd()}/data/video_metadata.csv"
+    output_csv = f"{os.getcwd()}/data/video_metadata_with_scenes.csv"
     video_directory = f"{os.getcwd()}/data/raw_videos/"
 
-    # Read the CSV file using pandas
-    df = pd.read_csv(csv_file)
+    df = pd.read_csv(input_csv)
 
-    # Process each video
-    for _, row in df.iterrows():
+    pbar = tqdm(df.iterrows(), total=len(df.index))
+    for index, row in pbar:
         video_id = row['id']
         video_file_path = os.path.join(video_directory, f"{video_id}.mp4")
+        
+        pbar.set_description("Processing %s" % video_file_path)
+        pbar.refresh() # to show immediately the update
 
         if os.path.exists(video_file_path):
             video_data = process_video(video_file_path)
-            print(f"For video at {video_file_path}")
+            
+            pbar.write(f"\nFor video at {video_file_path}")
 
-            # Update the corresponding row in the DataFrame
-            print(f"# of shots: {video_data['num_shots']}")
-            print(f"sbd: {str(video_data['shot_boundaries'])}")
-            print(f"shot durations: {str(video_data['shot_durations'])}")
+            df.at[index, 'num_shots'] = video_data['num_shots']
+            df.at[index, 'shot_boundaries'] = str(video_data['shot_boundaries'])
+            df.at[index, 'shot_durations'] = str(video_data['shot_durations'])
+
+            pbar.write(f"# of shots: {video_data['num_shots']}\n")
 
         else:
             print(f"Video file not found: {video_file_path}")
 
-    # Save the updated DataFrame to the CSV file
-    # df.to_csv(csv_file, index=False)
-
+    df.to_csv(output_csv, index=False)
