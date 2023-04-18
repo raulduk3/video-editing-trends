@@ -30,18 +30,7 @@ This script downloads and scrapes videos from YouTube using search queries. It s
 ```
 python src/data_collection/download_and_scrape.py
 ```
-download_videos_only.py
-This script downloads videos from YouTube using search queries. It saves the video files to the data/raw_videos directory. To run the script, use the following command:
 
-```
-python src/data_collection/download_videos_only.py
-```
-scrape_metadata_only.py
-This script scrapes metadata for videos from YouTube using search queries. It saves the video metadata to the data/video_metadata.csv file. To run the script, use the following command:
-
-```
-python src/data_collection/scrape_metadata_only.py
-```
 verify_video_files.py
 This script verifies that the video files in the data/raw_videos directory match the video metadata in the data/video_metadata.csv file. To run the script, use the following command:
 
