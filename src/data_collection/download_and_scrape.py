@@ -6,12 +6,17 @@ import csv
 import yt_dlp
 import googleapiclient.discovery
 import googleapiclient.errors
+import isodate
 
+def sanitize_string(s):
+    return s.replace('\n', '\\n').replace('\r', '\\r').replace(',', '\\,')
 
-def download_video(video_url, output_directory):
+def download_video(video_id, output_directory):
+    video_url = f"https://www.youtube.com/watch?v={video_id}"
+
     ydl_opts = {
-        'format': 'best',
-        'outtmpl': os.path.join(output_directory, '%(id)s.%(ext)s'),
+        'format': 'mp4',
+        'outtmpl': os.path.join(output_directory, '%(id)s.mp4'),
         'nocheckcertificate': True,
         'quiet': True,
         'noprogress': True
@@ -26,18 +31,29 @@ def get_video_metadata(api_key, video_id):
     youtube = googleapiclient.discovery.build("youtube", "v3", developerKey=api_key)
 
     request = youtube.videos().list(
-        part="statistics",
+        part="snippet,statistics,contentDetails",
         id=video_id
     )
     response = request.execute()
 
     video = response['items'][0]
+    snippet = video['snippet']
     statistics = video['statistics']
+    content_details = video['contentDetails']
+
+    # Remove the 'favorites' field from the dictionary
+    statistics.pop('favoriteCount', None)
+
+    duration = isodate.parse_duration(content_details['duration']).total_seconds()
 
     return {
         'id': video_id,
-        **statistics
+        'title': sanitize_string(snippet['title']),
+        'description': sanitize_string(snippet['description']),
+        **statistics,
+        'duration': duration,
     }
+
 
 def save_metadata_to_csv(metadata, output_file):
     if not os.path.exists(output_file):
@@ -67,27 +83,135 @@ def get_video_ids_by_search_query(api_key, query, max_results=50):
     video_ids = [item['id']['videoId'] for item in response['items']]
     return video_ids
 
+def is_video_already_downloaded(video_id, output_directory, output_file):
+    video_file = os.path.join(output_directory, f"{video_id}.mp4")
+    if not os.path.exists(video_file):
+        return False
+
+    with open(output_file, 'r', newline='') as csvfile:
+        reader = csv.DictReader(csvfile)
+        for row in reader:
+            if row['id'] == video_id:
+                return True
+    return False
 
 if __name__ == "__main__":
     api_key = "AIzaSyA1K_PGOMvpCJmXzJ0GlOLity_ktv9ToPk"
     search_queries = [
-        "viral roller coaster"
+        "Cute animal videos",
+        "Amazing dance performances",
+        "Hilarious prank videos",
+        "DIY home decor tutorials",
+        "Mind-blowing science experiments",
+        "Inspirational quotes",
+        "Beautiful nature photography",
+        "Motivational speeches",
+        "Gaming tutorials",
+        "Funny fails",
+        "Incredible sports moments",
+        "Food recipe videos",
+        "Cool science inventions",
+        "Viral cat videos",
+        "Crazy roller coaster rides",
+        "Unusual art installations",
+        "Creative short films",
+        "Comedy sketches",
+        "Impressive parkour stunts",
+        "Guitar covers",
+        "Fascinating travel documentaries",
+        "Short horror films",
+        "Interesting conspiracy theories",
+        "Cool robot technology",
+        "Hilarious lip sync videos",
+        "Mind-bending optical illusions",
+        "Amazing magic performances",
+        "Cute baby animal videos",
+        "Challenging brain teasers",
+        "Educational history lessons",
+        "Motivational workout videos",
+        "Impressive drawing tutorials",
+        "Artistic animation shorts",
+        "Incredible acrobatics",
+        "Unusual musical instruments",
+        "Short film festivals",
+        "Life hacks for productivity",
+        "Pop culture reviews",
+        "Short news segments",
+        "Silly dance videos",
+        "Strange food videos",
+        "Viral dog videos",
+        "Short biographies of famous people",
+        "Fascinating scientific theories",
+        "Time-lapse city videos",
+        "Heartwarming charity stories",
+        "Short film trailers",
+        "Epic car stunts",
+        "Compilation videos of funny moments",
+        "Short comedy skits",
+        "Short animated movies",
+        "Compilation videos of epic fails",
+        "Intriguing space theories",
+        "Miniature model making tutorials",
+        "Short documentaries about interesting people",
+        "Creative music videos",
+        "Amazing nature timelapses",
+        "Viral skateboard videos",
+        "Hilarious blooper compilations",
+        "Self-improvement advice for success",
+        "Cute pet moments",
+        "Short political analysis",
+        "Abandoned places with eerie histories",
+        "Impressive drone footage",
+        "Cool robot designs",
+        "Celebrity impersonations",
+        "Gorgeous aerial shots",
+        "Explorations of paranormal activity",
+        "Short fashion films",
+        "Interesting fashion design",
+        "Exotic animal encounters",
+        "Fascinating crime stories",
+        "Amazing card tricks",
+        "Hilarious pet compilations",
+        "Unconventional beauty tutorials",
+        "Epic surfing footage",
+        "Innovative architecture designs",
+        "Adorable kid moments",
+        "Mind-blowing sand art",
+        "Tasty food recipe compilations",
+        "Viral football highlights",
+        "Bizarre cults and religions",
+        "Short skits with social commentary",
+        "Funny prank compilations",
+        "Fascinating archaeological discoveries",
+        "Viral roller skating videos",
+        "Impressive breakdancing performances",
+        "Interesting urban exploration",
+        "Inspirational success stories",
+        "Famous speech analysis",
+        "Psychedelic art videos",
+        "Short films with unique concepts",
+        "Viral snowboarding footage",
+        "Captivating spoken word poetry"
     ]
-    
+
     max_results = 100
     output_directory = f"{os.getcwd()}/data/raw_videos/"
     output_file = f"{os.getcwd()}/data/video_metadata.csv"
 
-    for query in search_queries:
+    pbar = tqdm(search_queries)
+    for query in pbar:
         video_ids = get_video_ids_by_search_query(api_key, query, max_results)
-        print("\033[2J")
-        print(f"Downloading: {query}")
+        pbar.set_description(f"Searching: {query}")
 
-        for video_id in tqdm(video_ids, unit="video"):
-            video_url = f"https://www.youtube.com/watch?v={video_id}"
-            try:
-                download_video(video_url, output_directory)
-                metadata = get_video_metadata(api_key, video_id)
-                save_metadata_to_csv(metadata, output_file)
-            except Exception as e:
-                print(f"Error processing video {video_id}: {e}")
+        bar = tqdm(video_ids)
+        for video_id in bar:
+            bar.set_description(f"Downloading: {video_id}")
+            metadata = get_video_metadata(api_key, video_id)
+            if not is_video_already_downloaded(video_id, output_directory, output_file) and metadata['duration'] <= 300:
+                try:
+                    if download_video(video_id, output_directory):
+                        save_metadata_to_csv(metadata, output_file)
+                except Exception as e:
+                    bar.write(f"Error processing video {video_id}: {e}")
+            else:
+                bar.write(f"Video {video_id} already downloaded, metadata exists, or its too damn long. skipping.")

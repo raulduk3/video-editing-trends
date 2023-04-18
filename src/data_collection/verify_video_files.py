@@ -39,6 +39,6 @@ if __name__ == "__main__":
     extra_video_ids = set(downloaded_video_ids) - set(csv_video_ids)
 
     print(f"# of missing videos: {len(missing_video_ids)}")
-    print(f"# of extra videos: {len(extra_video_ids)}")
+    print(f"# of extra videos: {extra_video_ids}")
 
     delete_duplicate_files(video_directory, downloaded_video_ids)
