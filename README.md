@@ -53,43 +53,24 @@ python src/data_collection/verify_video_files.py
 
 ## Project Structure
 ```
-pySceneDetect-clustering-analysis/
-│
-├── data/
-│   ├── raw_videos/
-│   │   ├── video1.mp4
-│   │   ├── video2.mp4
-│   │   └── ...
-│   ├── video_metadata.csv
-│   └── preprocessed_features.npy
-│
-├── src/
-│   ├── data_collection/
-│   │   ├── download_videos.py
-│   │   └── scrape_metadata.py
-│   ├── feature_extraction/
-│   │   ├── shot_boundaries.py
-│   │   └── metadata_features.py
-│   ├── feature_preprocessing/
-│   │   ├── normalize_features.py
-│   │   └── encode_features.py
-│   ├── clustering/
-│   │   └── unsupervised_dnn.py
-│   ├── visualization/
-│   │   ├── tsne_visualization.py
-│   │   └── pca_visualization.py
-│   └── utils.py
-│
-├── notebooks/
-│   └── exploratory_analysis.ipynb
-│
-├── results/
-│   ├── visualizations/
-│   │   ├── tsne_plot.png
-│   │   └── pca_plot.png
-│   └── clustering_results.csv
-│
-└── README.md
+pySceneDetect-video-editing-trends/
+├── data
+│   ├── processed_video_with_metadata.csv
+│   ├── raw_videos
+│   └── video_metadata.csv
+├── monitor_raw_video_folder
+├── notebooks
+│   └── exploratory_analysis.ipynb
+├── README.md
+├── requirements.txt
+├── results
+│   └── clustering_results.csv
+└── src
+    ├── clustering
+    ├── data_collection
+    ├── feature_extraction
+    ├── feature_preprocessing
+    └── visualization
 ```
 
 ## Dataset
