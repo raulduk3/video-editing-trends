@@ -3,9 +3,8 @@ import sys
 import csv
 from tqdm import tqdm
 from scenedetect import open_video, AdaptiveDetector, SceneManager
-
-def sanitize_string(s):
-    return s.replace('\n', '\\n').replace('\r', '\\r').replace(',', '\\,')
+import numpy as np
+from sklearn.feature_extraction.text import TfidfVectorizer
 
 def process_video(file_path):
     video = open_video(file_path)
@@ -54,12 +53,35 @@ def is_video_processed(video_id, output_csv):
                     return True
     return False
 
+def train_vectorizers(rows):
+    title_vectorizer = TfidfVectorizer(max_features=100)
+    desc_vectorizer = TfidfVectorizer(max_features=100)
+
+    titles = [row['title'] for row in rows]
+    descriptions = [row['description'] for row in rows]
+
+    title_vectorizer.fit(titles)
+    desc_vectorizer.fit(descriptions)
+
+    return title_vectorizer, desc_vectorizer
+
+def vectorize_row_text_fields(row, title_vectorizer, desc_vectorizer):
+    title_vector = title_vectorizer.transform([row['title']]).toarray().flatten()
+    desc_vector = desc_vectorizer.transform([row['description']]).toarray().flatten()
+
+    row['title'] = list_to_string(title_vector)
+    row['description'] = list_to_string(desc_vector)
+    
+def list_to_string(data):
+    return ' '.join(map(str, data))
+
 if __name__ == "__main__":
     input_csv = f"{os.getcwd()}/data/video_metadata.csv"
     output_csv = f"{os.getcwd()}/data/processed_video_with_metadata.csv"
     video_directory = f"{os.getcwd()}/data/raw_videos/"
 
     input_rows = read_input_csv(input_csv)
+    title_vectorizer, desc_vectorizer = train_vectorizers(input_rows)
 
     pbar = tqdm(input_rows)
     for row in pbar:
@@ -75,11 +97,12 @@ if __name__ == "__main__":
 
         if os.path.exists(video_file_path):
             video_data = process_video(video_file_path)
-            
-            row['num_shots'] = video_data['num_shots']
-            row['shot_boundaries'] = sanitize_string(str(video_data['shot_boundaries']))
-            row['shot_durations'] = sanitize_string(str(video_data['shot_durations']))
 
+            row['num_shots'] = video_data['num_shots']
+            row['shot_boundaries'] = list_to_string(video_data['shot_boundaries'])
+            row['shot_durations'] = list_to_string(video_data['shot_durations'])
+
+            vectorize_row_text_fields(row, title_vectorizer, desc_vectorizer)
             write_processed_data_to_csv(row, output_csv)
 
             pbar.write(f"\nFor video at {video_file_path}")
