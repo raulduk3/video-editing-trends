@@ -50,7 +50,7 @@ python src/data_collection/verify_video_files.py
 ```
 pySceneDetect-video-editing-trends/
 ├── data
-│   ├── processed_video_with_metadata.csv
+│   ├── extracted_features.csv
 │   ├── raw_videos
 │   └── video_metadata.csv
 ├── monitor_raw_video_folder
