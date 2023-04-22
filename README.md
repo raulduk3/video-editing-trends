@@ -5,14 +5,9 @@ This repository contains the code and data for a project analyzing trends in sho
 ## Installation
 
 To install the necessary Python dependencies for this project, please follow these steps:
-1. Install node.js and npm on your machine.
-2. Install the forever package globally by running the following command in your terminal:
-```
-npm install -g forever
-```
-3. Create a Python environment using [Anaconda](https://www.anaconda.com/products/individual) or [virtualenv](https://virtualenv.pypa.io/en/latest/).
-4. Activate the Python environment.
-5. Install the required packages using the following command:
+1. Create a Python environment using [Anaconda](https://www.anaconda.com/products/individual) or [virtualenv](https://virtualenv.pypa.io/en/latest/).
+2. Activate the Python environment.
+3. Install the required packages using the following command:
 
 ```python
 pip install -r requirements.txt
