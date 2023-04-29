@@ -1,111 +1,115 @@
 import os
-import sys
 import csv
-from tqdm import tqdm
-from scenedetect import open_video, AdaptiveDetector, SceneManager
 import numpy as np
+from tqdm import tqdm
+import pandas as pd
+import statistics
+from scenedetect import open_video, AdaptiveDetector, SceneManager
 from sklearn.feature_extraction.text import TfidfVectorizer
 
-def process_video(file_path):
-    video = open_video(file_path)
+def get_shot_boundaries_and_durations(video_path):
     scene_manager = SceneManager()
     scene_manager.add_detector(AdaptiveDetector())
-
+    video = open_video(video_path)
     scene_manager.detect_scenes(video)
 
     scene_boundaries = scene_manager.get_scene_list()
     num_shots = 1 if len(scene_boundaries) == 0 else len(scene_boundaries)
 
     shot_durations = [
-        (scene[1] - scene[0]).get_seconds()
+        round((scene[1] - scene[0]).get_seconds(), 4)
         for scene in scene_boundaries
     ]
-
-    return {
-        'num_shots': num_shots,
-        'shot_boundaries': scene_boundaries,
-        'shot_durations': shot_durations,
-    }
-
-def read_input_csv(input_csv):
-    with open(input_csv, 'r') as csvfile:
-        reader = csv.DictReader(csvfile)
-        rows = [row for row in reader]
-    return rows
-
-def write_processed_data_to_csv(row, output_csv):
-    if not os.path.exists(output_csv):
-        with open(output_csv, 'w') as csvfile:
-            fieldnames = row.keys()
-            writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
-            writer.writeheader()
-            
-    with open(output_csv, 'a') as csvfile:
-        writer = csv.DictWriter(csvfile, fieldnames=row.keys())
-        writer.writerow(row)
-
-def is_video_processed(video_id, output_csv):
-    if os.path.exists(output_csv):
-        with open(output_csv, 'r') as csvfile:
-            reader = csv.DictReader(csvfile)
-            for row in reader:
-                if row['id'] == video_id:
-                    return True
-    return False
-
-def train_vectorizers(rows):
-    title_vectorizer = TfidfVectorizer(max_features=100)
-    desc_vectorizer = TfidfVectorizer(max_features=100)
-
-    titles = [row['title'] for row in rows]
-    descriptions = [row['description'] for row in rows]
-
-    title_vectorizer.fit(titles)
-    desc_vectorizer.fit(descriptions)
-
-    return title_vectorizer, desc_vectorizer
-
-def vectorize_row_text_fields(row, title_vectorizer, desc_vectorizer):
-    title_vector = title_vectorizer.transform([row['title']]).toarray().flatten()
-    desc_vector = desc_vectorizer.transform([row['description']]).toarray().flatten()
-
-    row['title'] = list_to_string(title_vector)
-    row['description'] = list_to_string(desc_vector)
     
+    fps = video.frame_rate
+    total_frames = video.duration.get_frames()
+
+    return scene_boundaries, shot_durations, num_shots, fps, total_frames
+
 def list_to_string(data):
     return ' '.join(map(str, data))
 
-if __name__ == "__main__":
-    input_csv = f"{os.getcwd()}/data/video_metadata.csv"
-    output_csv = f"{os.getcwd()}/data/processed_video_with_metadata.csv"
-    video_directory = f"{os.getcwd()}/data/raw_videos/"
+def get_video_features(video_path):
+    # clip = VideoFileClip(video_path)
 
-    input_rows = read_input_csv(input_csv)
-    title_vectorizer, desc_vectorizer = train_vectorizers(input_rows)
+    # avg_hue, avg_saturation, avg_lightness = get_average_hsl(clip, clip.fps)
+    shot_boundaries, shot_durations, num_shots, fps, total_frames = get_shot_boundaries_and_durations(video_path)
+    shot_length_variance = statistics.variance(shot_durations) if len(shot_boundaries) > 1 else 0
+    
+    features = {
+        'total_frames': total_frames,
+        'shot_durations': list_to_string(shot_durations if len(shot_boundaries) > 1 else ''),
+        'num_shots': num_shots,
+        'shot_duration_variance': shot_length_variance,
+        'average_shot_duration': round(np.average(shot_durations), 4)if len(shot_boundaries) > 1 else 0,
+    }
 
-    pbar = tqdm(input_rows)
-    for row in pbar:
-        video_id = row['id']
-        video_file_path = os.path.join(video_directory, f"{video_id}.mp4")
+    return features
 
-        if is_video_processed(video_id, output_csv):
-            pbar.write(f"Video {video_id} already processed, skipping.")
-            continue
+def load_video_data(csv_file):
+    videos = []
 
-        pbar.set_description("Processing %s" % video_file_path)
-        pbar.refresh()
+    with open(csv_file, 'r', encoding='utf-8') as csvfile:
+        reader = csv.DictReader(csvfile)
+        for row in reader:
+            videos.append(row)
 
-        if os.path.exists(video_file_path):
-            video_data = process_video(video_file_path)
+    return videos
 
-            row['num_shots'] = video_data['num_shots']
-            row['shot_boundaries'] = list_to_string(video_data['shot_boundaries'])
-            row['shot_durations'] = list_to_string(video_data['shot_durations'])
 
-            vectorize_row_text_fields(row, title_vectorizer, desc_vectorizer)
-            write_processed_data_to_csv(row, output_csv)
+def process_videos(csv_file, output_csv):
+    video_data = load_video_data(csv_file)
 
-            pbar.write(f"\nFor video at {video_file_path}")
-            pbar.write(f"# of shots: {video_data['num_shots']}\n")
-        else:
-            print(f"Video file not found: {video_file_path}")
+    # Vectorize title and description
+    vectorizer = TfidfVectorizer(max_features=50)
+    titles = [video['title'] for video in video_data]
+    descriptions = [video['description'] for video in video_data]
+    title_vectors = vectorizer.fit_transform(titles).toarray()
+    description_vectors = vectorizer.fit_transform(descriptions).toarray()
+
+    # Read existing output csv file to check for already processed videos
+    processed_video_ids = set()
+    header_written = os.path.exists(output_csv)
+    if header_written:
+        with open(output_csv, 'r', encoding='utf-8') as csvfile:
+            reader = csv.DictReader(csvfile)
+            for row in reader:
+                processed_video_ids.add(row['id'])
+
+    with open(output_csv, 'a', encoding='utf-8', newline='') as csvfile:    
+        videos = tqdm(enumerate(video_data), total=len(video_data) - len(processed_video_ids), unit="videos")    
+        for index, video in videos:
+            video_id = video['id']
+
+            # Skip if video has already been processed or has duration longer than 3 minutes
+            if video_id in processed_video_ids or float(video['duration']) > 180:
+                continue
+
+            video_path = os.path.join('data', 'raw_videos', f"{video_id}.mp4")
+            videos.set_description(f'Processing: {video_path}')
+            features = get_video_features(video_path)
+            video_features = {
+                'id': video_id,
+                'viewCount': int(video['viewCount']),
+                'likeCount': int(video['likeCount']),
+                'commentCount': int(video['commentCount']),
+                'duration': float(video['duration']),
+            }
+            video_features.update(features)
+            video_features.update({f'title_{i}': title_vectors[index][i] for i in range(title_vectors.shape[1])})
+            video_features.update({f'description_{i}': description_vectors[index][i] for i in range(description_vectors.shape[1])})
+
+            # Write video features to output CSV
+            writer = csv.DictWriter(csvfile, fieldnames=video_features.keys())
+            if not header_written:
+                writer.writeheader()
+                header_written = True
+            writer.writerow(video_features)
+            
+            videos.write(f'Processesd and saved `{video_id}.mp4`.')
+
+csv_file = '/home/ra/temp/video_metadata.csv'
+output_csv = '/home/ra/temp/video_features.csv'
+process_videos(csv_file, output_csv)
+df = pd.read_csv(output_csv)
+print(df.head())
