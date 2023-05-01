@@ -5,6 +5,9 @@ import os
 import csv
 import yt_dlp
 
+def sanitize_string(s):
+    return s.replace('\n', '\\n').replace('\r', '\\r').replace(',', '\\,')
+
 
 def download_video(video_url, output_directory):
     ydl_opts = {
@@ -27,16 +30,25 @@ def read_video_ids_from_csv(csv_file):
 
     return video_ids
 
+def is_video_already_downloaded(video_id, output_directory):
+    video_file = os.path.join(output_directory, f"{video_id}.mp4")
+    if os.path.exists(video_file):
+        return True
+
+    return False
 
 if __name__ == "__main__":
     input_file = f"{os.getcwd()}/data/video_metadata.csv"
-    output_directory = f"{os.getcwd()}/data/raw_videos/"
+    output_directory = f"/media/ra/Research-RA/pySceneDetect-video-editing-trends/data/raw_videos/"
 
     video_ids = read_video_ids_from_csv(input_file)
 
     for video_id in tqdm(video_ids, unit="video"):
         video_url = f"https://www.youtube.com/watch?v={video_id}"
         try:
-            download_video(video_url, output_directory)
+            if not is_video_already_downloaded(video_id, output_directory):
+                download_video(video_url, output_directory)
+            else:
+                continue
         except Exception as e:
             print(f"Error processing video {video_id}: {e}")

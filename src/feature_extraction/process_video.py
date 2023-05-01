@@ -5,7 +5,9 @@ from tqdm import tqdm
 import pandas as pd
 import statistics
 from scenedetect import open_video, AdaptiveDetector, SceneManager
-from sklearn.feature_extraction.text import TfidfVectorizer
+
+def sanitize_string(s):
+    return s.replace('\n', '\\n').replace('\r', '\\r').replace(',', '\\,')
 
 def get_shot_boundaries_and_durations(video_path):
     scene_manager = SceneManager()
@@ -41,63 +43,41 @@ def get_video_features(video_path):
         'shot_durations': list_to_string(shot_durations if len(shot_boundaries) > 1 else ''),
         'num_shots': num_shots,
         'shot_duration_variance': shot_length_variance,
-        'average_shot_duration': round(np.average(shot_durations), 4)if len(shot_boundaries) > 1 else 0,
+        'average_shot_duration': round(np.mean(shot_durations), 4) if len(shot_boundaries) > 1 else 0,
     }
 
     return features
 
 def load_video_data(csv_file):
-    videos = []
-
-    with open(csv_file, 'r', encoding='utf-8') as csvfile:
-        reader = csv.DictReader(csvfile)
-        for row in reader:
-            videos.append(row)
-
-    return videos
-
+    return pd.read_csv(csv_file, encoding='utf-8')
 
 def process_videos(csv_file, output_csv):
     video_data = load_video_data(csv_file)
 
-    # Read existing output csv file to check for already processed videos
-    processed_video_ids = set()
-    header_written = os.path.exists(output_csv)
-    if header_written:
-        with open(output_csv, 'r', encoding='utf-8') as csvfile:
-            reader = csv.DictReader(csvfile)
-            for row in reader:
-                processed_video_ids.add(row['id'])
+    video_features_list = []
+    for index, (_, video), video in tqdm(enumerate(video_data.iterrows()), total=len(video_data), unit="videos"):
+        video_id = video['id']
+        video_path = f"/media/ra/Research-RA/pySceneDetect-video-editing-trends/data/raw_videos/{video_id}.mp4"
+        features = get_video_features(video_path)
+        video_features = {
+            'id': video_id,
+            'title': sanitize_string(str(video['title'])),
+            'description': sanitize_string(str(video['description'])),
+            'viewCount': int(video['viewCount']),
+            'likeCount': int(video['likeCount']),
+            'commentCount': int(video['commentCount']),
+            'duration': float(video['duration']),
+        }
+        video_features.update(features)
+        video_features_list.append(video_features)
 
-    with open(output_csv, 'a', encoding='utf-8', newline='') as csvfile:    
-        videos = tqdm(enumerate(video_data), total=len(video_data) - len(processed_video_ids), unit="videos")    
-        for index, video in videos:
-            video_id = video['id']
+        # Write video features to output CSV
+        video_features_df = pd.DataFrame(video_features_list)
+        video_features_df.to_csv(output_csv, index=False, encoding='utf-8')
 
-            # Skip if video has already been processed or has duration longer than 3 minutes
-            if video_id in processed_video_ids or float(video['duration']) > 180:
-                continue
+    df = pd.read_csv(output_csv)
+    print(df.head())
 
-            video_path = os.path.join('data', 'raw_videos', f"{video_id}.mp4")
-            videos.set_description(f'Processing: {video_path}')
-            features = get_video_features(video_path)
-            video_features = {
-                'id': video_id,
-                'viewCount': int(video['viewCount']),
-                'likeCount': int(video['likeCount']),
-                'commentCount': int(video['commentCount']),
-                'duration': float(video['duration']),
-            }
-            video_features.update(features)
-            
-            # Write video features to output CSV
-            writer = csv.DictWriter(csvfile, fieldnames=video_features.keys())
-            if not header_written:
-                writer.writeheader()
-                header_written = True
-            writer.writerow(video_features)
-            
-            videos.write(f'Processesd and saved `{video_id}.mp4`.')
 
 csv_file = f'{os.getcwd()}/data/video_metadata.csv'
 output_csv = f'{os.getcwd()}/data/video_features.csv'
