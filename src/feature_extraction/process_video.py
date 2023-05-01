@@ -60,13 +60,6 @@ def load_video_data(csv_file):
 def process_videos(csv_file, output_csv):
     video_data = load_video_data(csv_file)
 
-    # Vectorize title and description
-    vectorizer = TfidfVectorizer(max_features=50)
-    titles = [video['title'] for video in video_data]
-    descriptions = [video['description'] for video in video_data]
-    title_vectors = vectorizer.fit_transform(titles).toarray()
-    description_vectors = vectorizer.fit_transform(descriptions).toarray()
-
     # Read existing output csv file to check for already processed videos
     processed_video_ids = set()
     header_written = os.path.exists(output_csv)
@@ -96,9 +89,7 @@ def process_videos(csv_file, output_csv):
                 'duration': float(video['duration']),
             }
             video_features.update(features)
-            video_features.update({f'title_{i}': title_vectors[index][i] for i in range(title_vectors.shape[1])})
-            video_features.update({f'description_{i}': description_vectors[index][i] for i in range(description_vectors.shape[1])})
-
+            
             # Write video features to output CSV
             writer = csv.DictWriter(csvfile, fieldnames=video_features.keys())
             if not header_written:
@@ -108,8 +99,8 @@ def process_videos(csv_file, output_csv):
             
             videos.write(f'Processesd and saved `{video_id}.mp4`.')
 
-csv_file = '/home/ra/temp/video_metadata.csv'
-output_csv = '/home/ra/temp/video_features.csv'
+csv_file = f'{os.getcwd()}/data/video_metadata.csv'
+output_csv = f'{os.getcwd()}/data/video_features.csv'
 process_videos(csv_file, output_csv)
 df = pd.read_csv(output_csv)
 print(df.head())
