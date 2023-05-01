@@ -27,32 +27,37 @@ def download_video(video_id, output_directory):
         return True
 
 
-def get_video_metadata(api_key, video_id):
+def get_video_metadata(api_key, video_ids):
     youtube = googleapiclient.discovery.build("youtube", "v3", developerKey=api_key)
 
     request = youtube.videos().list(
         part="snippet,statistics,contentDetails",
-        id=video_id
+        id=",".join(video_ids)
     )
     response = request.execute()
 
-    video = response['items'][0]
-    snippet = video['snippet']
-    statistics = video['statistics']
-    content_details = video['contentDetails']
+    metadata = []
+    for video in response['items']:
+        snippet = video['snippet']
+        statistics = video['statistics']
+        content_details = video['contentDetails']
 
-    # Remove the 'favorites' field from the dictionary
-    statistics.pop('favoriteCount', None)
+        # Remove the 'favorites' field from the dictionary
+        statistics.pop('favoriteCount', None)
 
-    duration = isodate.parse_duration(content_details['duration']).total_seconds()
+        duration = isodate.parse_duration(content_details['duration']).total_seconds()
 
-    return {
-        'id': video_id,
-        'title': sanitize_string(snippet['title']),
-        'description': sanitize_string(snippet['description']),
-        **statistics,
-        'duration': duration,
-    }
+        metadata.append({
+            'id': video['id'],
+            'title': sanitize_string(snippet['title']),
+            'description': sanitize_string(snippet['description']),
+            'view_count': int(statistics.get('viewCount', 0)),
+            'like_count': int(statistics.get('likeCount', 0)),
+            'dislike_count': int(statistics.get('dislikeCount', 0)),
+            'duration': duration,
+        })
+
+    return metadata
 
 
 def save_metadata_to_csv(metadata, output_file):
@@ -67,21 +72,53 @@ def save_metadata_to_csv(metadata, output_file):
         writer.writerow(metadata)
 
 
-def get_video_ids_by_search_query(api_key, query, max_results=50):
+def get_videos_by_search_query(api_key, query, max_results=50):
     youtube = googleapiclient.discovery.build("youtube", "v3", developerKey=api_key)
 
+    # Step 1: Search for videos and get their IDs
     request = youtube.search().list(
         part="id",
         type="video",
         q=query,
         videoDefinition="high",
+        videoDuration="short",
         maxResults=max_results,
         fields="items(id(videoId))"
     )
     response = request.execute()
-
     video_ids = [item['id']['videoId'] for item in response['items']]
-    return video_ids
+
+    # Step 2: Retrieve metadata for those videos using the videos().list() method
+    video_metadata = []
+    for i in range(0, len(video_ids), 50):
+        batch_video_ids = video_ids[i:i+50]
+        request = youtube.videos().list(
+            part="snippet,statistics,contentDetails",
+            id=",".join(batch_video_ids)
+        )
+        response = request.execute()
+        for video in response['items']:
+            snippet = video['snippet']
+            statistics = video['statistics']
+            content_details = video['contentDetails']
+
+            # Remove the 'favorites' field from the dictionary
+            statistics.pop('favoriteCount', None)
+
+            duration = isodate.parse_duration(content_details['duration']).total_seconds()
+
+            video_metadata.append({
+                'id': video['id'],
+                'title': sanitize_string(snippet['title']),
+                'description': sanitize_string(snippet['description']),
+                'view_count': int(statistics.get('viewCount', 0)),
+                'like_count': int(statistics.get('likeCount', 0)),
+                'dislike_count': int(statistics.get('dislikeCount', 0)),
+                'duration': duration,
+            })
+
+    return video_metadata
+
 
 def is_video_already_downloaded(video_id, output_directory, output_file):
     video_file = os.path.join(output_directory, f"{video_id}.mp4")
@@ -200,18 +237,19 @@ if __name__ == "__main__":
 
     pbar = tqdm(search_queries)
     for query in pbar:
-        video_ids = get_video_ids_by_search_query(api_key, query, max_results)
         pbar.set_description(f"Searching: {query}")
+        video_ids = get_videos_by_search_query(api_key, query, max_results)
 
-        bar = tqdm(video_ids)
-        for video_id in bar:
-            bar.set_description(f"Downloading: {video_id}")
-            metadata = get_video_metadata(api_key, video_id)
+        videos = tqdm(video_ids)
+        for metadata in videos:
+            video_id = metadata['id']
+            videos.set_description(f"Downloading: {video_id}")
+
             if not is_video_already_downloaded(video_id, output_directory, output_file) and metadata['duration'] <= 300:
                 try:
                     if download_video(video_id, output_directory):
                         save_metadata_to_csv(metadata, output_file)
                 except Exception as e:
-                    bar.write(f"Error processing video {video_id}: {e}")
+                    videos.write(f"Error processing video {video_id}: {e}")
             else:
-                bar.write(f"Video {video_id} already downloaded, metadata exists, or its too damn long. skipping.")
+                videos.write(f"Video {video_id} already downloaded, metadata exists, or its too damn long. skipping.")
