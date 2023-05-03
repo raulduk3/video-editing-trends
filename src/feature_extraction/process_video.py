@@ -1,5 +1,4 @@
 import os
-import csv
 import numpy as np
 from tqdm import tqdm
 import pandas as pd
@@ -8,6 +7,12 @@ from scenedetect import open_video, AdaptiveDetector, SceneManager
 
 def sanitize_string(s):
     return s.replace('\n', '\\n').replace('\r', '\\r').replace(',', '\\,')
+
+def list_to_string(data):
+    return ' '.join(map(str, data))
+
+def load_video_data(csv_file):
+    return pd.read_csv(csv_file, encoding='utf-8')
 
 def get_shot_boundaries_and_durations(video_path):
     scene_manager = SceneManager()
@@ -28,16 +33,10 @@ def get_shot_boundaries_and_durations(video_path):
 
     return scene_boundaries, shot_durations, num_shots, fps, total_frames
 
-def list_to_string(data):
-    return ' '.join(map(str, data))
-
 def get_video_features(video_path):
-    # clip = VideoFileClip(video_path)
-
-    # avg_hue, avg_saturation, avg_lightness = get_average_hsl(clip, clip.fps)
     shot_boundaries, shot_durations, num_shots, fps, total_frames = get_shot_boundaries_and_durations(video_path)
     shot_length_variance = statistics.variance(shot_durations) if len(shot_boundaries) > 1 else 0
-    
+
     features = {
         'total_frames': total_frames,
         'shot_durations': list_to_string(shot_durations if len(shot_boundaries) > 1 else ''),
@@ -48,17 +47,18 @@ def get_video_features(video_path):
 
     return features
 
-def load_video_data(csv_file):
-    return pd.read_csv(csv_file, encoding='utf-8')
-
 def process_videos(csv_file, output_csv):
     video_data = load_video_data(csv_file)
 
     video_features_list = []
-    for index, (_, video), video in tqdm(enumerate(video_data.iterrows()), total=len(video_data), unit="videos"):
+    bar = tqdm(enumerate(video_data.iterrows()), total=len(video_data), unit="videos")
+    for index, (_, video) in bar:
+        bar.refresh()
+        bar.set_description(f"Processing ${video['id']}")
         video_id = video['id']
-        video_path = f"/media/ra/Research-RA/pySceneDetect-video-editing-trends/data/raw_videos/{video_id}.mp4"
+        video_path = f"/Volumes/ASHCHILD I/IPHS400_DATA/{video_id}.mp4"
         features = get_video_features(video_path)
+
         video_features = {
             'id': video_id,
             'title': sanitize_string(str(video['title'])),
@@ -78,7 +78,7 @@ def process_videos(csv_file, output_csv):
     df = pd.read_csv(output_csv)
     print(df.head())
 
-
+# Implement a function to calculate average hue, saturation, and lightness
 csv_file = f'{os.getcwd()}/data/video_metadata.csv'
 output_csv = f'{os.getcwd()}/data/video_features.csv'
 process_videos(csv_file, output_csv)

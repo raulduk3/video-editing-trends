@@ -30,7 +30,7 @@ def delete_duplicate_files(directory, video_ids):
 
 if __name__ == "__main__":
     csv_file = f"{os.getcwd()}/data/video_metadata.csv"
-    video_directory = f"/media/ra/Research-RA/pySceneDetect-video-editing-trends/data/raw_videos/"    
+    video_directory = f"/Volumes/ASHCHILD I/IPHS400_DATA/"    
 
     csv_video_ids = read_video_ids_from_csv(csv_file)
     downloaded_video_ids = get_downloaded_video_ids(video_directory)

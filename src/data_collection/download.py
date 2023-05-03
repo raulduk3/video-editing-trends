@@ -1,5 +1,4 @@
 # download_videos_only.py
-
 from tqdm import tqdm
 import os
 import csv
@@ -39,7 +38,7 @@ def is_video_already_downloaded(video_id, output_directory):
 
 if __name__ == "__main__":
     input_file = f"{os.getcwd()}/data/video_metadata.csv"
-    output_directory = f"/media/ra/Research-RA/pySceneDetect-video-editing-trends/data/raw_videos/"
+    output_directory = f"/Volumes/ASHCHILD I/IPHS400_DATA/"
 
     video_ids = read_video_ids_from_csv(input_file)
 

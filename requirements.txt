@@ -1,9 +1,10 @@
 google_api_python_client==2.86.0
 isodate==0.6.1
-numpy==1.21.5
+moviepy==1.0.3
+numpy
+opencv_python==4.7.0.68
 pandas==1.5.3
-pycaret==3.0.0
+Pillow
 scenedetect==0.6.1
-scikit_learn==1.2.2
 tqdm==4.65.0
 yt_dlp==2023.3.4

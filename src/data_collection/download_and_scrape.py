@@ -122,8 +122,8 @@ def get_videos_by_search_query(api_key, query, max_results=50):
 
 def is_video_already_downloaded(video_id, output_directory, output_file):
     video_file = os.path.join(output_directory, f"{video_id}.mp4")
-    if not os.path.exists(video_file):
-        return False
+    if os.path.exists(video_file):
+        return True
 
     with open(output_file, 'r', newline='') as csvfile:
         reader = csv.DictReader(csvfile)
@@ -135,109 +135,35 @@ def is_video_already_downloaded(video_id, output_directory, output_file):
 if __name__ == "__main__":
     api_key = "AIzaSyA1K_PGOMvpCJmXzJ0GlOLity_ktv9ToPk"
     search_queries = [
-        "Cute animal videos",
-        "Amazing dance performances",
-        "Hilarious prank videos",
-        "DIY home decor tutorials",
-        "Mind-blowing science experiments",
-        "Inspirational quotes",
-        "Beautiful nature photography",
-        "Motivational speeches",
-        "Gaming tutorials",
-        "Funny fails",
-        "Incredible sports moments",
-        "Food recipe videos",
-        "Cool science inventions",
-        "Viral cat videos",
-        "Crazy roller coaster rides",
-        "Unusual art installations",
-        "Creative short films",
-        "Comedy sketches",
-        "Impressive parkour stunts",
-        "Guitar covers",
-        "Fascinating travel documentaries",
-        "Short horror films",
-        "Interesting conspiracy theories",
-        "Cool robot technology",
-        "Hilarious lip sync videos",
-        "Mind-bending optical illusions",
-        "Amazing magic performances",
-        "Cute baby animal videos",
-        "Challenging brain teasers",
-        "Educational history lessons",
-        "Motivational workout videos",
-        "Impressive drawing tutorials",
-        "Artistic animation shorts",
-        "Incredible acrobatics",
-        "Unusual musical instruments",
-        "Short film festivals",
-        "Life hacks for productivity",
-        "Pop culture reviews",
-        "Short news segments",
-        "Silly dance videos",
-        "Strange food videos",
-        "Viral dog videos",
-        "Short biographies of famous people",
-        "Fascinating scientific theories",
-        "Time-lapse city videos",
-        "Heartwarming charity stories",
-        "Short film trailers",
-        "Epic car stunts",
-        "Compilation videos of funny moments",
-        "Short comedy skits",
-        "Short animated movies",
-        "Compilation videos of epic fails",
-        "Intriguing space theories",
-        "Miniature model making tutorials",
-        "Short documentaries about interesting people",
-        "Creative music videos",
-        "Amazing nature timelapses",
-        "Viral skateboard videos",
-        "Hilarious blooper compilations",
-        "Self-improvement advice for success",
-        "Cute pet moments",
-        "Short political analysis",
-        "Abandoned places with eerie histories",
-        "Impressive drone footage",
-        "Cool robot designs",
-        "Celebrity impersonations",
-        "Gorgeous aerial shots",
-        "Explorations of paranormal activity",
-        "Short fashion films",
-        "Interesting fashion design",
-        "Exotic animal encounters",
-        "Fascinating crime stories",
-        "Amazing card tricks",
-        "Hilarious pet compilations",
-        "Unconventional beauty tutorials",
-        "Epic surfing footage",
-        "Innovative architecture designs",
-        "Adorable kid moments",
-        "Mind-blowing sand art",
-        "Tasty food recipe compilations",
-        "Viral football highlights",
-        "Bizarre cults and religions",
-        "Short skits with social commentary",
-        "Funny prank compilations",
-        "Fascinating archaeological discoveries",
-        "Viral roller skating videos",
-        "Impressive breakdancing performances",
-        "Interesting urban exploration",
-        "Inspirational success stories",
-        "Famous speech analysis",
-        "Psychedelic art videos",
-        "Short films with unique concepts",
-        "Viral snowboarding footage",
-        "Captivating spoken word poetry"
-    ]
+    "Viral horse riding videos",
+    "Epic water skiing stunts",
+    "Amazing paper cutting tutorials",
+    "Hilarious grandma moments",
+    "Incredible body painting art",
+    "Heartwarming animal rescues",
+    "Viral basketball trick shots",
+    "Fascinating ant farm videos",
+    "Epic drone racing competitions",
+    "Mind-blowing sand animation",
+    "Viral sports bloopers",
+    "Incredible balloon art",
+    "Hilarious baby videos",
+    "Viral martial arts demonstrations",
+    "Beautiful sunset timelapses",
+    "Viral dance battles",
+    "Impressive fire juggling",
+    "Inspirational success stories of overcoming obstacles",
+    "Viral gymnastics routines",
+    "Epic mountain biking stunts",
+]
 
     max_results = 100
-    output_directory = f"{os.getcwd()}/data/raw_videos/"
+    output_directory = f"/Volumes/ASHCHILD I/IPHS400_DATA/"
     output_file = f"{os.getcwd()}/data/video_metadata.csv"
 
     pbar = tqdm(search_queries)
     for query in pbar:
-        pbar.set_description(f"Searching: {query}")
+        pbar.set_description(f"Searczhing: {query}")
         video_ids = get_videos_by_search_query(api_key, query, max_results)
 
         videos = tqdm(video_ids)
