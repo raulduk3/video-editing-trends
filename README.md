@@ -4,7 +4,7 @@ This repository contains the code and data for a project analyzing trends in sho
 
 ## Poster
 
-![image]()
+![image](https://github.com/raulduk3/pySceneDetect-video-editing-trends/raw/main/richard%20alvarez_iphs484_spr2023_final_poster.pptx-1.png)
 
 ## Installation
 
