@@ -2,6 +2,10 @@
 
 This repository contains the code and data for a project analyzing trends in short-format video editing using PySceneDetect and unsupervised deep learning techniques. The project was conducted by Richard Alvarez, a student at Kenyon College IPHS Department, as part of their coursework.
 
+## Poster
+
+![image]()
+
 ## Installation
 
 To install the necessary Python dependencies for this project, please follow these steps:
@@ -33,18 +37,18 @@ This script verifies that the video files in the data/raw_videos directory match
 python src/data_collection/verify_video_files.py
 ```
 
-### Feature Extraction
-[TODO: add feature extraction instructions]
-
-### Feature Preprocessing
-[TODO: add feature preprocessing instructions]
-
 ### Clustering
-[TODO: add clustering instructions]
+To cluster the data you have scraped and downlaoded, you can use the following script:
+
+cluster.py
+This script uses PyCaret to to cluster the data with specific hyperparameters. 
+
+```
+python src/clustering/cluster.py
+```
 
 ### Visualization
-[TODO: add visualization instructions]
-
+Use the Jupyter notebooks visualize your data!
 
 ## Project Structure
 ```
